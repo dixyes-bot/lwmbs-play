@@ -178,8 +178,11 @@ jobs:
           export GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
 
           # prepare lwmbs
+          remote="${{ github.repositoryUrl }}"
+          # git: is not available in actions
+          remote="https:${remote#git:}"
           cd /lwmbs
-          git remote set-url origin "${{ github.repositoryUrl }}"
+          git remote set-url origin "$remote"
           git fetch origin ${{ github.sha }}
           git checkout ${{ github.sha }}
 
