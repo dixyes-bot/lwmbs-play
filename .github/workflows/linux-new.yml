@@ -475,7 +475,11 @@ jobs:
           then
               apk add gcompat libstdc++
           fi
-          npm i -g @actions/artifact @actions/core @actions/github
+          npm i -g \
+            @actions/core \
+            @actions/github \
+            @actions/artifact \
+            @actions/exec
           echo "NODE_PATH=$(npm root --quiet -g)" >> "$GITHUB_ENV"
 
       - name: Expose GitHub Runtime
