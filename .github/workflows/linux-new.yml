@@ -179,6 +179,7 @@ jobs:
 
           # prepare lwmbs
           cd /lwmbs
+          git remote set-url origin "${{ github.repositoryUrl }}"
           git fetch origin ${{ github.sha }}
           git checkout ${{ github.sha }}
 
@@ -479,5 +480,5 @@ jobs:
       - name: Upload artifacts
         if: always()
         run: |
-          node .github/workflows/upload.js
+          node /lwmbs/.github/workflows/upload.js
 
