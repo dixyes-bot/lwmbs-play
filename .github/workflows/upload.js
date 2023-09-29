@@ -6,20 +6,33 @@ const github = require('@actions/github');
 const artifact = require('@actions/artifact');
 const exec = require('@actions/exec');
 
-const matrix = github.context.matrix
-const uploadRelease = !!core.getInput('uploadRelease');
 const octokit = github.getOctokit(process.env.ACTIONS_RUNTIME_TOKEN);
+const artifactClient = artifact.create()
 
-const sapis = matrix.sapis
-const flavors = matrix.flavors
-const binFile = {
-  'micro': 'micro.sfx',
-  'micro-cli': 'micro_cli.sfx',
-  'cli': 'php',
-}
+async function main(osName, context) {
 
-async function main() {
-  let client = artifact.create()
+  const owner = context.github.repository_owner
+  const repo = context.github.repository.replace(`${owner}/`, '')
+
+  const sep = osName === 'windows' ? '\\' : '/'
+
+  let sapis = context.matrix.sapis
+  let flavors = context.matrix.flavors
+  if (osName === 'linux') {
+    flavors = flavors.map(flavor => [`${flavor}_static`, `${flavor}_shared`]).flat()
+  }
+  let binFile = {
+    'micro': 'micro.sfx',
+    'micro-cli': 'micro_cli.sfx',
+    'cli': 'php',
+  }
+  if (osName === 'windows') {
+    binFile = {
+      'micro': 'micro.sfx',
+      'micro-cli': 'micro_cli.sfx',
+      'cli': 'php.exe',
+    }
+  }
 
   let artifacts = {};
   let results = {};
@@ -29,10 +42,10 @@ async function main() {
 
   let tagName
   if (uploadRelease) {
-    // latest few records is ok ?
+    // latest few records, is that ok?
     let { data: releases } = await octokit.repos.listReleases({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
+      owner: owner,
+      repo: repo,
     });
 
     let date = new Date().toISOString().split('T')[0];
@@ -50,80 +63,122 @@ async function main() {
 
     // create new release
     let { data: release } = await octokit.repos.createRelease({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
+      owner: owner,
+      repo: repo,
       tag_name: tagName,
       name: tagName,
       body: `automatic release`,
     });
+
+    console.log(`Release ${tagName} created`)
   }
 
   for (const flavor of flavors) {
-    for (const staticOrShared of ['static', 'shared']) {
-      let dir = `/out/${flavor}_${staticOrShared}`;
-      for (const sapi of sapis) {
-        let binPath = `${dir}/${binFile[sapi]}`;
-        try {
-          await fs.access(binPath)
-          console.log(`\x1b[37m;File ${binPath} found\x1b[0m;`)
-          let artifactName = `${sapi}_${staticOrShared}_${flavor}_${matrix.phpVer}_${matrix.libc}_${matrix.arch}_${srcHash}`;
-          artifacts[artifactName] = {
-            'file': binPath,
-            'dir': dir,
-          };
-          let shaSum = crypto.createHash('sha256').update(await fs.readFile(binPath)).digest('hex')
-          console.log(`\x1b[37m;File ${binPath} sha256: ${shaSum}\x1b[0m;`)
-          await fs.writeFile(`${dir}/sha256sums.txt`, `${shaSum}  ${binFile[sapi]}\n`, { flag: 'a' })
-          try {
-            shaSum = crypto.createHash('sha256').update(await fs.readFile(`${binPath}.debug`)).digest('hex')
-            console.log(`\x1b[37m;File ${binPath}.debug sha256: ${shaSum}\x1b[0m;`)
-            await fs.writeFile(`${dir}/sha256sums.txt`, `${shaSum}  ${binFile[sapi]}.debug\n`, { flag: 'a' })
-          } catch (error) {
-            // pass
-          }
-        } catch (error) {
-          console.log(`\x1b[30m;File ${binPath} not found\x1b[0m;`)
+    let dir
+    switch (osName) {
+      case 'linux':
+        dir = `/out/${flavor}`
+        break;
+      case 'windows':
+        dir = `C:\\out\\${flavor}`
+        break;
+      case 'macos':
+        dir = `build/out/${flavor}`
+        break;
+      default:
+        // impossible
+        throw `Unknown os ${os}`
+    }
+    for (const sapi of sapis) {
+      let fileName = binFile[sapi]
+      let debugName
+      switch (osName) {
+        case 'linux':
+          debugName = fileName + '.debug'
+          break;
+        case 'windows':
+          debugName = fileName.replace(/\..+?$/, '') + '.pdb'
+          break;
+        case 'macos':
+          debugName = fileName + '.dwarf'
+          break;
+      }
+      let filePath = `${dir}${sep}${fileName}`;
+      try {
+        await fs.access(filePath)
+        console.log(`\x1b[37m;File ${filePath} found\x1b[0m;`)
+        let artifactName
+        switch (osName) {
+          case 'linux':
+            let _flavor = flavor.split('_').reverse().join('_')
+            artifactName = `${sapi}_${_flavor}_${context.matrix.phpVer}_${context.matrix.libc}_${context.matrix.arch}_${srcHash}`
+            break;
+          case 'windows':
+          // fall through
+          case 'macos':
+            artifactName = `${sapi}_${flavor}_${context.matrix.phpVer}_${context.matrix.arch}_${srcHash}`
+            break;
         }
+
+        artifacts[artifactName] = {
+          'file': fileName,
+          'debug': debugName,
+          'dir': dir,
+        };
+        let shaSum = crypto.createHash('sha256').update(await fs.readFile(filePath)).digest('hex')
+        console.log(`\x1b[37m;File ${filePath} sha256: ${shaSum}\x1b[0m;`)
+        await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${fileName}\n`, { flag: 'a' })
+
+        try {
+          shaSum = crypto.createHash('sha256').update(await fs.readFile(debugName)).digest('hex')
+          console.log(`\x1b[37m;File ${debugName} sha256: ${shaSum}\x1b[0m;`)
+          await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${debugName}\n`, { flag: 'a' })
+        } catch (error) {
+          // pass
+        }
+      } catch (error) {
+        console.log(`\x1b[30m;File ${filePath} not found\x1b[0m;`)
       }
     }
   }
 
   for (const [name, info] of Object.entries(artifacts)) {
     let fileList = [
-      `${info.dir}/sha256sums.txt`,
+      'sha256sums.txt',
+      'versionFile',
+      'licenses',
       info.file,
     ];
     try {
-      await fs.access(`${info.file}.debug`);
-      fileList.push(`${info.file}.debug`);
+      await fs.access(`${info.dir}${sep}${info.debug}`);
+      fileList.push(`${info.debug}`);
     } catch (error) {
       // pass
     }
-    try {
-      for (const file of await fs.readdir(`${info.dir}/licenses`)) {
-        fileList.push(`${info.dir}/licenses/${file}`);
-      }
-    } catch (error) {
-      console.log(`Directory ${info.dir}/licenses not found`);
-    }
-    fileList.push(`${info.dir}/versionFile`);
 
     try {
       console.log(`Uploading artifact ${name}`);
-      let uploadResponse = client.uploadArtifact(name, fileList, info.dir);
+      let uploadResponse = artifactClient.uploadArtifact(name, fileList, info.dir);
       results[name] = uploadResponse;
       if (uploadRelease) {
         console.log(`Uploading artifact ${name} to release ${tagName}`);
-        // zip files
-        let zipFile = `/tmp/${name}.zip`;
+        // compress files
+        let filePath = `/tmp/${name}.tar.gz`;
+        if (osName === 'windows') {
+          filePath = `C:\\${name}.zip`;
+        }
         // remove ${info.dir} suffix
-        await exec.exec(`zip`, ['-j', zipFile, ...fileList.map(file => file.replace(`${info.dir}/`, ''))]);
+        if (osName === 'windows') {
+          await exec.exec('tar', '-cjvf', [filePath, ...fileList]);
+        } else {
+          await exec.exec(`zip`, [filePath, ...fileList]);
+        }
         let { data: releaseAsset } = await octokit.repos.uploadReleaseAsset({
-          owner: github.context.repo.owner,
-          repo: github.context.repo.repo,
+          owner: owner,
+          repo: repo,
           release_id: release.id,
-          name: `${name}.zip`,
-          data: await fs.readFile(zipFile),
+          name: filePath.split(sep).pop(),
+          data: await fs.readFile(filePath),
         });
       }
     } catch (error) {
@@ -138,4 +193,8 @@ async function main() {
 
 }
 
-main().catch(err => core.setFailed(err.message));
+module.exports = {
+  main
+}
+
+

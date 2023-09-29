@@ -481,6 +481,9 @@ jobs:
             @actions/artifact \
             @actions/exec
           echo "NODE_PATH=$(npm root --quiet -g)" >> "$GITHUB_ENV"
+          mkdir /out/min_shared/licenses
+          touch /out/min_shared/licenses/LICENSE.somea
+          touch /out/min_shared/licenses/LICENSE.someb
 
       - name: Expose GitHub Runtime
         if: always()
@@ -488,6 +491,14 @@ jobs:
 
       - name: Upload artifacts
         if: always()
+        shell: node {0}
         run: |
-          node /lwmbs/.github/workflows/upload.js
+          const context = {
+            matrix: ${{ toJson(matrix) }},
+            github: ${{ toJson(github) }},
+            inputs: ${{ toJson(inputs) }},
+          }
+
+          const { main } = require('/lwmbs/.github/workflows/upload.js')
+          main('linux', context).catch(err => core.setFailed(err.message))
 
