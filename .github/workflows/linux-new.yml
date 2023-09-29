@@ -382,7 +382,7 @@ jobs:
                           "--arch={$matrix['arch']}"
                       ret="\$?"
                       touch $targetBin
-                      touch $targetBin.denbug
+                      touch $targetBin.debug
                       echo "::endgroup::"
                       if [ ! "\$ret" = "0" ]
                       then
