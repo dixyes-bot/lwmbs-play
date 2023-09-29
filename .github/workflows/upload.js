@@ -8,7 +8,7 @@ const exec = require('@actions/exec');
 
 const matrix = github.context.matrix
 const uploadRelease = !!core.getInput('uploadRelease');
-const octokit = github.getOctokit('');
+const octokit = github.getOctokit(process.env.ACTIONS_RUNTIME_TOKEN);
 
 const sapis = matrix.sapis
 const flavors = matrix.flavors
