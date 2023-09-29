@@ -179,11 +179,13 @@ jobs:
           git checkout ${{ github.sha }}
 
           cd /
-          php /lwmbs/fetch_source.php \
-            "" \
-            "" \
-            "--phpVer=${{ matrix.phpVer }}" \
-            "--versionFile=/versionFile"
+          # php /lwmbs/fetch_source.php \
+          #   "" \
+          #   "" \
+          #   "--phpVer=${{ matrix.phpVer }}" \
+          #   "--versionFile=/versionFile"
+          mkdir -p /src/php-src/sapi/micro /src/php-src/sapi/cli
+          echo debug > /versionFile
 
           matched_key="${{ steps.cache-restore.outputs.cache-matched-key }}"
           src_hash="$(sha256sum /versionFile | head -c 64)"
@@ -323,7 +325,7 @@ jobs:
 
               echo "::group::Build $flavor libs"
               # rebuild libs for this flavor to avoid cache
-              php /lwmbs/build_libs.php \
+              : php /lwmbs/build_libs.php \
                   "$libraries" \
                   "--cc=\$LWMBS_CC" \
                   "--cxx=\$LWMBS_CXX" \
@@ -364,13 +366,15 @@ jobs:
                       # {$matrix['libc']}_shared $sapi
                       # rm php_micro.lo to avoid cache
                       rm -f /src/php-src/sapi/micro/php_micro.lo
-                      php /lwmbs/$command \
+                      : php /lwmbs/$command \
                           "$libraries" \
                           "$extensions" \
                           "--cc=\$LWMBS_CC" \
                           "--cxx=\$LWMBS_CXX" \
                           "--arch={$matrix['arch']}"
                       ret="\$?"
+                      touch $targetBin
+                      touch $targetBin.debug
                       echo "::endgroup::"
                       if [ ! "\$ret" = "0" ]
                       then
@@ -389,7 +393,7 @@ jobs:
                           # {$matrix['libc']}_static $sapi
                           # rm php_micro.lo to avoid cache
                           rm -f /src/php-src/sapi/micro/php_micro.lo
-                          php /lwmbs/$command \
+                          : php /lwmbs/$command \
                               "$libraries" \
                               "$extensions" \
                               "--cc=\$LWMBS_CC" \
@@ -397,6 +401,8 @@ jobs:
                               "--arch={$matrix['arch']}" \
                               "--allStatic"
                           ret="\$?"
+                          touch $targetBin
+                          touch $targetBin.denbug
                           echo "::endgroup::"
                           if [ ! "\$ret" = "0" ]
                           then
