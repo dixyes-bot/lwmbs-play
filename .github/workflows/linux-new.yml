@@ -184,11 +184,13 @@ jobs:
           git checkout ${{ github.sha }}
 
           cd /
-          php /lwmbs/fetch_source.php \
-            "" \
-            "" \
-            "--phpVer=${{ matrix.phpVer }}" \
-            "--versionFile=/versionFile"
+          # php /lwmbs/fetch_source.php \
+          #   "" \
+          #   "" \
+          #   "--phpVer=${{ matrix.phpVer }}" \
+          #   "--versionFile=/versionFile"
+          mkdir -p /src/php-src/sapi/micro /src/php-src/sapi/cli
+          echo debug > /versionFile
 
           matched_key="${{ steps.cache-restore.outputs.cache-matched-key }}"
           src_hash="$(sha256sum /versionFile | head -c 64)"
