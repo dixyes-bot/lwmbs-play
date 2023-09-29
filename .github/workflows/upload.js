@@ -16,6 +16,8 @@ async function main(osName, context) {
 
   const sep = osName === 'windows' ? '\\' : '/'
 
+  const uploadArtifact = !!context.inputs.uploadArtifact
+
   let sapis = context.matrix.sapis
   let flavors = context.matrix.flavors
   if (osName === 'linux') {
