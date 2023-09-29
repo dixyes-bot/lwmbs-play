@@ -498,6 +498,7 @@ jobs:
             github: ${{ toJson(github) }},
             inputs: ${{ toJson(inputs) }},
           }
+          const core = require('@actions/core');
 
           const { main } = require('/lwmbs/.github/workflows/upload.js')
           main('linux', context).catch(err => core.setFailed(err.message))
