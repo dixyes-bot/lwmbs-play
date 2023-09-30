@@ -80,6 +80,7 @@ jobs:
               #file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
               $f = file_get_contents('https://httpbin.org/anything/repos/${{ github.repository }}/releases', context: $context);
               var_dump($f);
+              sleep(1);
               exit(1);
           }
 
