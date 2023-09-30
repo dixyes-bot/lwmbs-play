@@ -16,7 +16,7 @@ async function main(osName, context) {
 
   const sep = osName === 'windows' ? '\\' : '/'
 
-  const uploadArtifact = !!context.inputs.uploadArtifact
+  const uploadRelease = !!context.inputs.uploadRelease
 
   let sapis = context.matrix.sapis
   let flavors = context.matrix.flavors
@@ -43,36 +43,35 @@ async function main(osName, context) {
   let srcHash = crypto.createHash('sha256').update(versionFile).digest('hex');
 
   let tagName
+  let release
   if (uploadRelease) {
-    // latest few records, is that ok?
-    let { data: releases } = await octokit.repos.listReleases({
-      owner: owner,
-      repo: repo,
-    });
-
     let date = new Date().toISOString().split('T')[0];
 
-    let exists = releases
-      .filter(release => release.tag_name.startsWith(date))
-      .map(release => parseInt(release.tag_name.split('-').pop()))
+    tagName = `${date}-${context.github.run_id}`
 
-    let newVersion = 0;
-    if (exists.length > 0) {
-      newVersion = Math.max(...exists) + 1;
+    try {
+      // get release
+      release = await octokit.repos.getReleaseByTag({
+        owner: owner,
+        repo: repo,
+        tag: tagName,
+      });
+      // create new release
+      console.log(`Got release ${tagName}`)
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error
+      }
+      // create new release
+      console.log(`Release ${tagName} created`)
+      release = await octokit.repos.createRelease({
+        owner: owner,
+        repo: repo,
+        tag_name: tagName,
+        name: tagName,
+        body: `automatic release`,
+      });
     }
-
-    tagName = exists.length > 0 ? `${date}-${newVersion}` : date;
-
-    // create new release
-    let { data: release } = await octokit.repos.createRelease({
-      owner: owner,
-      repo: repo,
-      tag_name: tagName,
-      name: tagName,
-      body: `automatic release`,
-    });
-
-    console.log(`Release ${tagName} created`)
   }
 
   for (const flavor of flavors) {
@@ -178,7 +177,7 @@ async function main(osName, context) {
         let { data: releaseAsset } = await octokit.repos.uploadReleaseAsset({
           owner: owner,
           repo: repo,
-          release_id: release.id,
+          release_id: release.data.id,
           name: filePath.split(sep).pop(),
           data: await fs.readFile(filePath),
         });
