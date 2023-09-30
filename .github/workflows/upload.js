@@ -51,7 +51,7 @@ async function main(osName, context) {
 
     try {
       // get release
-      release = await octokit.rest.getReleaseByTag({
+      release = await octokit.rest.repos.listReleases({
         owner: owner,
         repo: repo,
         tag: tagName,
@@ -64,7 +64,7 @@ async function main(osName, context) {
       }
       // create new release
       console.log(`Release ${tagName} created`)
-      release = await octokit.rest.createRelease({
+      release = await octokit.rest.repos.createRelease({
         owner: owner,
         repo: repo,
         tag_name: tagName,
