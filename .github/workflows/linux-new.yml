@@ -507,18 +507,13 @@ jobs:
           then
               apk add gcompat libstdc++
           fi
+          ldd which node
           npm i -g \
             @actions/core \
             @actions/github \
             @actions/artifact \
             @actions/exec
           echo "NODE_PATH=$(npm root --quiet -g)" >> "$GITHUB_ENV"
-          mkdir /out/min_shared/licenses
-          touch /out/min_shared/licenses/LICENSE.somea
-          touch /out/min_shared/licenses/LICENSE.someb
-      
-      - uses: mxschmitt/action-tmate@v2
-        if: always()
 
       - name: Expose GitHub Runtime
         if: always()
