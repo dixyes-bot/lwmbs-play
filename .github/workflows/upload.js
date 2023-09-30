@@ -51,15 +51,15 @@ async function main(token, osName, context) {
     tagName = `${date}-${osName}-${context.github.run_id}`
 
     // get release
-    let { data: releases } = await octokit.rest.repos.listReleases({
+    let r = await octokit.rest.repos.getReleaseByTag({
       owner: owner,
       repo: repo,
       tag: tagName,
     });
-    if (releases.length === 0) {
+    if (!r) {
       throw `Release ${tagName} not found`
     } else {
-      release = releases[0]
+      release = r.data
       console.log(`Found release ${tagName} id ${release.id}`)
     }
   }
