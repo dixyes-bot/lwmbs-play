@@ -507,7 +507,7 @@ jobs:
           then
               apk add gcompat libstdc++
           fi
-          ldd which node
+          ldd `which node`
           npm i -g \
             @actions/core \
             @actions/github \
