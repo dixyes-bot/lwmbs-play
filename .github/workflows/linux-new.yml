@@ -44,21 +44,18 @@ jobs:
   gen-jobs:
     name: Generate jobs
     runs-on: ubuntu-latest
-    permissions: write-all
     outputs:
       jobs: ${{ steps.gen-jobs.outputs.jobs }}
     steps:
-      - name: Expose GitHub Runtime
-        uses: crazy-max/ghaction-github-runtime@v2
       - name: Generate jobs
         id: gen-jobs
         shell: php {0}
         run: |
           <?php
 
-          # set_error_handler(function ($severity, $message, $file, $line) {
-          #     throw new ErrorException($message, 0, $severity, $file, $line);
-          # });
+          set_error_handler(function ($severity, $message, $file, $line) {
+              throw new ErrorException($message, 0, $severity, $file, $line);
+          });
 
           if (true || !!'${{ github.event.inputs.uploadRelease }}') {
               # create github release
@@ -72,7 +69,8 @@ jobs:
                       'method' => 'GET',
                       'header' => implode("\r\n", [
                           'Content-Type: application/json',
-                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',# . getenv('ACTIONS_RUNTIME_TOKEN'),
+                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',
+                          'User-Agent: file_get_contents/0',
                       ]),
                       'content' => json_encode([
                           'tag_name' => $tagName,
@@ -83,10 +81,7 @@ jobs:
                       ]),
                   ],
               ]);
-              # file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
-              $f = file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases');
-              var_dump($f);
-              exit(1);
+              file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
           }
 
 
