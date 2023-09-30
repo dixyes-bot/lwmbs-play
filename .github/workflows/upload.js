@@ -6,11 +6,11 @@ const github = require('@actions/github');
 const artifact = require('@actions/artifact');
 const exec = require('@actions/exec');
 
-const octokit = github.getOctokit(process.env.ACTIONS_RUNTIME_TOKEN);
 const artifactClient = artifact.create()
 
-async function main(osName, context) {
+async function main(token, osName, context) {
 
+  const octokit = github.getOctokit(token);
   const owner = context.github.repository_owner
   const repo = context.github.repository.replace(`${owner}/`, '')
 
