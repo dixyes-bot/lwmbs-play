@@ -56,9 +56,9 @@ jobs:
         run: |
           <?php
 
-          set_error_handler(function ($severity, $message, $file, $line) {
-              throw new ErrorException($message, 0, $severity, $file, $line);
-          });
+          # set_error_handler(function ($severity, $message, $file, $line) {
+          #     throw new ErrorException($message, 0, $severity, $file, $line);
+          # });
 
           if (true || !!'${{ github.event.inputs.uploadRelease }}') {
               # create github release
