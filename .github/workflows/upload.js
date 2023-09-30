@@ -16,8 +16,8 @@ async function main(token, osName, context) {
 
   const sep = osName === 'windows' ? '\\' : '/'
 
-  // const uploadRelease = !!context.inputs.uploadRelease
-  const uploadRelease = true
+  const uploadRelease = !!context.inputs.uploadRelease
+  // const uploadRelease = true
 
   let sapis = context.matrix.sapis
   let flavors = context.matrix.flavors
