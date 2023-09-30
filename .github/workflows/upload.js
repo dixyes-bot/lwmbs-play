@@ -59,9 +59,9 @@ async function main(token, osName, context) {
       });
       release = r.data
     } catch (error) {
-      throw `Release ${tagName}: ${error.message}`
+      throw new Error(`Release ${tagName}: ${error.message}`)
     }
-    console.log(`Found release ${tagName} id ${release.id}`)
+    console.log(`Found release ${tagName} id ${release.id}`)z
   }
 
   for (const flavor of flavors) {
@@ -80,6 +80,7 @@ async function main(token, osName, context) {
         // impossible
         throw `Unknown os ${os}`
     }
+    console.log(`at ${dir}:`)
     for (const sapi of sapis) {
       let fileName = binFile[sapi]
       let debugName
@@ -115,7 +116,6 @@ async function main(token, osName, context) {
           'debug': debugName,
           'dir': dir,
         };
-        console.log(`at ${dir}:`)
         let shaSum = crypto.createHash('sha256').update(await fs.readFile(filePath)).digest('hex')
         console.log(`${shaSum}  ${fileName}`)
         await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${fileName}\n`, { flag: 'a' })
