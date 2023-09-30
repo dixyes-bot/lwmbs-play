@@ -46,7 +46,7 @@ async function main(token, osName, context) {
   let tagName
   let release
   if (uploadRelease) {
-    let date = new Date().toISOString().split('T')[0];
+    let date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
 
     tagName = `${date}-${osName}-${context.github.run_id}`
 
