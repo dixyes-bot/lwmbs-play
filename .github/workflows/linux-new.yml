@@ -53,6 +53,29 @@ jobs:
         run: |
           <?php
 
+          if (!!"${{ github.event.inputs.uploadRelease }}") {
+              // create github release
+              echo "create release\n";
+
+              $tagName = date('Ymd') . '-linux-${{ github.run_id }}';
+
+              file_put_contents("https://api.github.com/repos/${{ github.repository }}/releases", json_encode([
+                  'tag_name' => $tagName,
+                  'name' => $tagName,
+                  'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                  'draft' => true,
+                  'prerelease' => true,
+              ]), [
+                  'http' => [
+                      'method' => 'POST',
+                      'header' => [
+                          'Content-Type: application/json',
+                          'Authorization: token ${{ secrets.GITHUB_TOKEN }}',
+                      ],
+                  ],
+              ]);
+          }
+
           function arg2arr(string $arg): array
           {
               return array_filter(array_map("trim", explode(',', $arg)));

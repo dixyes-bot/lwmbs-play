@@ -48,7 +48,7 @@ async function main(token, osName, context) {
   if (uploadRelease) {
     let date = new Date().toISOString().split('T')[0];
 
-    tagName = `${date}-${context.github.run_id}`
+    tagName = `${date}-${osName}-${context.github.run_id}`
 
     // get release
     let { data: releases } = await octokit.rest.repos.listReleases({
@@ -57,16 +57,7 @@ async function main(token, osName, context) {
       tag: tagName,
     });
     if (releases.length === 0) {
-      // create new release
-      console.log(`Create release ${tagName}`)
-      let resp = await octokit.rest.repos.createRelease({
-        owner: owner,
-        repo: repo,
-        tag_name: tagName,
-        name: tagName,
-        body: `automatic release\n\nworkflow run: [${context.github.run_id}](https://github.com/${context.github.repository}/actions/runs/${context.github.run_id})`,
-      });
-      release = resp.data
+      throw `Release ${tagName} not found`
     } else {
       release = releases[0]
     }
@@ -171,10 +162,10 @@ async function main(token, osName, context) {
         } else {
           await exec.exec(`zip`, [filePath, ...fileList], { cwd: info.dir });
         }
-        let { data: releaseAsset } = await octokit.repos.uploadReleaseAsset({
+        let { data: releaseAsset } = await octokit.rest.repos.uploadReleaseAsset({
           owner: owner,
           repo: repo,
-          release_id: release.data.id,
+          release_id: release.id,
           name: filePath.split(sep).pop(),
           data: await fs.readFile(filePath),
         });
