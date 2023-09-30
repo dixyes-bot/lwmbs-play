@@ -44,6 +44,7 @@ jobs:
   gen-jobs:
     name: Generate jobs
     runs-on: ubuntu-latest
+    permissions: write-all
     outputs:
       jobs: ${{ steps.gen-jobs.outputs.jobs }}
     steps:
@@ -72,7 +73,7 @@ jobs:
                           'Accept: application/vnd.github+json',
                           'X-GitHub-Api-Version: 2022-11-28',
                           'Content-Type: application/json',
-                          'Authorization: Bearer ' . getenv('ACTIONS_RUNTIME_TOKEN'),
+                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',# . getenv('ACTIONS_RUNTIME_TOKEN'),
                       ]),
                       'content' => json_encode([
                           'tag_name' => $tagName,
