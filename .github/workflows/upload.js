@@ -167,9 +167,9 @@ async function main(token, osName, context) {
         }
         // remove ${info.dir} suffix
         if (osName !== 'windows') {
-          await exec.exec('tar', ['-cjvf', filePath, ...fileList]);
+          await exec.exec('tar', ['-cjvf', filePath, ...fileList], { cwd: info.dir });
         } else {
-          await exec.exec(`zip`, [filePath, ...fileList]);
+          await exec.exec(`zip`, [filePath, ...fileList], { cwd: info.dir });
         }
         let { data: releaseAsset } = await octokit.repos.uploadReleaseAsset({
           owner: owner,
