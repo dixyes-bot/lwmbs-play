@@ -44,6 +44,8 @@ jobs:
   gen-jobs:
     name: Generate jobs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       jobs: ${{ steps.gen-jobs.outputs.jobs }}
     steps:
@@ -53,7 +55,7 @@ jobs:
         run: |
           <?php
 
-          if (true || !!'${{ github.event.inputs.uploadRelease }}') {
+          if (!!'${{ github.event.inputs.uploadRelease }}') {
               # create github release
               echo "create release\n";
 
