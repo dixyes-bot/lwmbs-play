@@ -44,16 +44,20 @@ jobs:
   gen-jobs:
     name: Generate jobs
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       jobs: ${{ steps.gen-jobs.outputs.jobs }}
     steps:
+      - name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v2
       - name: Generate jobs
         id: gen-jobs
         shell: php {0}
         run: |
           <?php
+
+          set_error_handler(function ($severity, $message, $file, $line) {
+              throw new ErrorException($message, 0, $severity, $file, $line);
+          });
 
           if (!!'${{ github.event.inputs.uploadRelease }}') {
               # create github release
@@ -68,7 +72,7 @@ jobs:
                           'Accept: application/vnd.github+json',
                           'X-GitHub-Api-Version: 2022-11-28',
                           'Content-Type: application/json',
-                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',
+                          'Authorization: Bearer ' . getenv('ACTIONS_RUNTIME_TOKEN'),
                       ]),
                       'content' => json_encode([
                           'tag_name' => $tagName,
