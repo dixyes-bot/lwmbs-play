@@ -170,7 +170,7 @@ async function main(token, osName, context) {
         }
         // remove ${info.dir} suffix
         if (osName !== 'windows') {
-          await exec.exec('tar', '-cjvf', [filePath, ...fileList]);
+          await exec.exec('tar', ['-cjvf', filePath, ...fileList]);
         } else {
           await exec.exec(`zip`, [filePath, ...fileList]);
         }
