@@ -68,22 +68,24 @@ jobs:
 
               $context = stream_context_create([
                   'http' => [
-                      # 'method' => 'POST',
+                      'method' => 'POST',
                       'method' => 'GET',
                       'header' => implode("\r\n", [
                           'Content-Type: application/json',
                           'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',# . getenv('ACTIONS_RUNTIME_TOKEN'),
                       ]),
-                      # 'content' => json_encode([
-                      #     'tag_name' => $tagName,
-                      #     'name' => $tagName,
-                      #     'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
-                      #     #'draft' => true,
-                      #     #'prerelease' => true,
-                      # ]),
+                      'content' => json_encode([
+                          'tag_name' => $tagName,
+                          'name' => $tagName,
+                          'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                          #'draft' => true,
+                          #'prerelease' => true,
+                      ]),
                   ],
               ]);
-              $f = file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+              file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+              $f = file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases');
+              var_dump($f);
               exit(1);
           }
 
