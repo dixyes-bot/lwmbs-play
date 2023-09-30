@@ -60,6 +60,7 @@ async function main(token, osName, context) {
       throw `Release ${tagName} not found`
     } else {
       release = releases[0]
+      console.log(`Found release ${tagName} id ${release.id}`)
     }
   }
 
@@ -114,6 +115,7 @@ async function main(token, osName, context) {
           'debug': debugName,
           'dir': dir,
         };
+        console.log(`at ${dir}:`)
         let shaSum = crypto.createHash('sha256').update(await fs.readFile(filePath)).digest('hex')
         console.log(`${shaSum}  ${fileName}`)
         await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${fileName}\n`, { flag: 'a' })
