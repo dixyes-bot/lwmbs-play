@@ -127,12 +127,12 @@ async function main(token, osName, context) {
           'dir': dir,
         };
         let shaSum = crypto.createHash('sha256').update(await fs.readFile(filePath)).digest('hex')
-        console.log(`${shaSum}  ${fileName}\n`)
+        console.log(`${shaSum}  ${fileName}`)
         await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${fileName}\n`, { flag: 'a' })
 
         try {
           shaSum = crypto.createHash('sha256').update(await fs.readFile(debugName)).digest('hex')
-          console.log(`${shaSum}  ${fileName}\n`)
+          console.log(`${shaSum}  ${fileName}`)
           await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${debugName}\n`, { flag: 'a' })
         } catch (error) {
           // pass
