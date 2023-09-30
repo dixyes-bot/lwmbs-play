@@ -51,7 +51,7 @@ async function main(osName, context) {
 
     try {
       // get release
-      release = await octokit.repos.getReleaseByTag({
+      release = await octokit.rest.getReleaseByTag({
         owner: owner,
         repo: repo,
         tag: tagName,
@@ -64,12 +64,12 @@ async function main(osName, context) {
       }
       // create new release
       console.log(`Release ${tagName} created`)
-      release = await octokit.repos.createRelease({
+      release = await octokit.rest.createRelease({
         owner: owner,
         repo: repo,
         tag_name: tagName,
         name: tagName,
-        body: `automatic release`,
+        body: `automatic release\n\nworkflow run: [${context.github.run_id}](https://github.com/${context.github.repository}/actions/runs/${context.github.run_id})`,
       });
     }
   }
