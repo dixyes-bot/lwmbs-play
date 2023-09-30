@@ -51,17 +51,17 @@ async function main(token, osName, context) {
     tagName = `${date}-${osName}-${context.github.run_id}`
 
     // get release
-    let r = await octokit.rest.repos.getReleaseByTag({
-      owner: owner,
-      repo: repo,
-      tag: tagName,
-    });
-    if (!r) {
-      throw `Release ${tagName} not found`
-    } else {
+    try {
+      let r = await octokit.rest.repos.getReleaseByTag({
+        owner: owner,
+        repo: repo,
+        tag: tagName,
+      });
       release = r.data
-      console.log(`Found release ${tagName} id ${release.id}`)
+    } catch (error) {
+      throw `Release ${tagName}: ${error.message}`
     }
+    console.log(`Found release ${tagName} id ${release.id}`)
   }
 
   for (const flavor of flavors) {
