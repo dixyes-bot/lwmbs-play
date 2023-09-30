@@ -64,7 +64,7 @@ jobs:
                       'method' => 'POST',
                       'header' => implode("\r\n", [
                           'Content-Type: application/json',
-                          'Authorization: token ${{ secrets.GITHUB_TOKEN }}',
+                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',
                       ]),
                       'content' => json_encode([
                       'tag_name' => $tagName,
