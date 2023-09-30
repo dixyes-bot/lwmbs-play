@@ -70,8 +70,6 @@ jobs:
                   'http' => [
                       'method' => 'POST',
                       'header' => implode("\r\n", [
-                          'Accept: application/vnd.github+json',
-                          'X-GitHub-Api-Version: 2022-11-28',
                           'Content-Type: application/json',
                           'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',# . getenv('ACTIONS_RUNTIME_TOKEN'),
                       ]),
