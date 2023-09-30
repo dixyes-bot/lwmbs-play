@@ -83,7 +83,7 @@ jobs:
                       ]),
                   ],
               ]);
-              file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+              # file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
               $f = file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases');
               var_dump($f);
               exit(1);
