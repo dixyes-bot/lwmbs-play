@@ -61,7 +61,7 @@ async function main(token, osName, context) {
     } catch (error) {
       throw new Error(`Release ${tagName}: ${error.message}`)
     }
-    console.log(`Found release ${tagName} id ${release.id}`)z
+    console.log(`Found release ${tagName} id ${release.id}`)
   }
 
   for (const flavor of flavors) {
