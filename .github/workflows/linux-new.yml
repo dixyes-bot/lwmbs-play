@@ -507,13 +507,14 @@ jobs:
           then
               apk add gcompat libstdc++
           fi
-          ldd `which node`
           npm i -g \
             @actions/core \
             @actions/github \
             @actions/artifact \
             @actions/exec
           echo "NODE_PATH=$(npm root --quiet -g)" >> "$GITHUB_ENV"
+          which node
+          node --version
 
       - name: Expose GitHub Runtime
         if: always()
