@@ -16,7 +16,8 @@ async function main(token, osName, context) {
 
   const sep = osName === 'windows' ? '\\' : '/'
 
-  const uploadRelease = !!context.inputs.uploadRelease
+  // const uploadRelease = !!context.inputs.uploadRelease
+  const uploadRelease = true
 
   let sapis = context.matrix.sapis
   let flavors = context.matrix.flavors
@@ -107,7 +108,6 @@ async function main(token, osName, context) {
       let filePath = `${dir}${sep}${fileName}`;
       try {
         await fs.access(filePath)
-        console.log(`\x1b[37m;File ${filePath} found\x1b[0m;`)
         let artifactName
         switch (osName) {
           case 'linux':
@@ -127,18 +127,18 @@ async function main(token, osName, context) {
           'dir': dir,
         };
         let shaSum = crypto.createHash('sha256').update(await fs.readFile(filePath)).digest('hex')
-        console.log(`\x1b[37m;File ${filePath} sha256: ${shaSum}\x1b[0m;`)
+        console.log(`${shaSum}  ${fileName}\n`)
         await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${fileName}\n`, { flag: 'a' })
 
         try {
           shaSum = crypto.createHash('sha256').update(await fs.readFile(debugName)).digest('hex')
-          console.log(`\x1b[37m;File ${debugName} sha256: ${shaSum}\x1b[0m;`)
+          console.log(`${shaSum}  ${fileName}\n`)
           await fs.writeFile(`${dir}${sep}sha256sums.txt`, `${shaSum}  ${debugName}\n`, { flag: 'a' })
         } catch (error) {
           // pass
         }
       } catch (error) {
-        console.log(`\x1b[30m;File ${filePath} not found\x1b[0m;`)
+        console.log(`\x1b[30mFile ${filePath} not found\x1b[0m`)
       }
     }
   }
@@ -159,7 +159,7 @@ async function main(token, osName, context) {
 
     try {
       console.log(`Uploading artifact ${name}`);
-      let uploadResponse = artifactClient.uploadArtifact(name, fileList, info.dir);
+      let uploadResponse = artifactClient.uploadArtifact(name, fileList.map(x => `${info.dir}${sep}${x}`), info.dir);
       results[name] = uploadResponse;
       if (uploadRelease) {
         console.log(`Uploading artifact ${name} to release ${tagName}`);
@@ -169,7 +169,7 @@ async function main(token, osName, context) {
           filePath = `C:\\${name}.zip`;
         }
         // remove ${info.dir} suffix
-        if (osName === 'windows') {
+        if (osName !== 'windows') {
           await exec.exec('tar', '-cjvf', [filePath, ...fileList]);
         } else {
           await exec.exec(`zip`, [filePath, ...fileList]);
