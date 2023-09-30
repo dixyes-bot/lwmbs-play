@@ -54,7 +54,7 @@ jobs:
           <?php
 
           if (!!'${{ github.event.inputs.uploadRelease }}') {
-              // create github release
+              # create github release
               echo "create release\n";
 
               $tagName = date('Ymd') . '-linux-${{ github.run_id }}';
@@ -63,19 +63,24 @@ jobs:
                   'http' => [
                       'method' => 'POST',
                       'header' => implode("\r\n", [
+                          'Accept: application/vnd.github+json',
+                          'X-GitHub-Api-Version: 2022-11-28',
                           'Content-Type: application/json',
                           'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',
                       ]),
                       'content' => json_encode([
-                      'tag_name' => $tagName,
-                      'name' => $tagName,
-                      'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
-                      //'draft' => true,
-                      //'prerelease' => true,
+                          'tag_name' => $tagName,
+                          'name' => $tagName,
+                          'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                          #'draft' => true,
+                          #'prerelease' => true,
                       ]),
                   ],
               ]);
-              file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+              #file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+              $f = file_get_contents('https://httpbin.org/anything/repos/${{ github.repository }}/releases', context: $context);
+              var_dump($f);
+              exit(1);
           }
 
 
