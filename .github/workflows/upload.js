@@ -50,28 +50,25 @@ async function main(token, osName, context) {
 
     tagName = `${date}-${context.github.run_id}`
 
-    try {
-      // get release
-      release = await octokit.rest.repos.listReleases({
-        owner: owner,
-        repo: repo,
-        tag: tagName,
-      });
+    // get release
+    let { data: releases } = await octokit.rest.repos.listReleases({
+      owner: owner,
+      repo: repo,
+      tag: tagName,
+    });
+    if (releases.length === 0) {
       // create new release
-      console.log(`Got release ${tagName}`)
-    } catch (error) {
-      if (error.status !== 404) {
-        throw error
-      }
-      // create new release
-      console.log(`Release ${tagName} created`)
-      release = await octokit.rest.repos.createRelease({
+      console.log(`Create release ${tagName}`)
+      let resp = await octokit.rest.repos.createRelease({
         owner: owner,
         repo: repo,
         tag_name: tagName,
         name: tagName,
         body: `automatic release\n\nworkflow run: [${context.github.run_id}](https://github.com/${context.github.repository}/actions/runs/${context.github.run_id})`,
       });
+      release = resp.data
+    } else {
+      release = releases[0]
     }
   }
 
