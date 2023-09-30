@@ -60,7 +60,7 @@ jobs:
               throw new ErrorException($message, 0, $severity, $file, $line);
           });
 
-          if (!!'${{ github.event.inputs.uploadRelease }}') {
+          if (true || !!'${{ github.event.inputs.uploadRelease }}') {
               # create github release
               echo "create release\n";
 
