@@ -406,7 +406,11 @@ jobs:
         if: always()
         shell: sh {0}
         run: |
-          npm i -g @actions/artifact @actions/core @actions/github
+          npm i -g \
+            @actions/core \
+            @actions/github \
+            @actions/artifact \
+            @actions/exec
           echo "NODE_PATH=$(npm root --quiet -g)" >> "$GITHUB_ENV"
 
       - name: Expose GitHub Runtime
