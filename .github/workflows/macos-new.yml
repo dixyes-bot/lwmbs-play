@@ -428,7 +428,7 @@ jobs:
           }
           const core = require('@actions/core');
 
-          const { main } = require('/lwmbs/.github/workflows/upload.js')
+          const { main } = require('.github/workflows/upload.js')
           main('${{ secrets.GITHUB_TOKEN }}', 'macos', context).catch(err => core.setFailed(err.message))
 
 
