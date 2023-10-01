@@ -53,7 +53,7 @@ jobs:
               # create github release
               echo "create release\n";
 
-              $tagName = date('Ymd') . '-linux-${{ github.run_id }}';
+              $tagName = date('Ymd') . '-macos-${{ github.run_id }}';
 
               $context = stream_context_create([
                   'http' => [
