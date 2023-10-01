@@ -413,98 +413,15 @@ jobs:
         if: always()
         shell: node {0}
         run: |
-          const fs = require('fs/promises');
-          const crypto = require('crypto');
-
+          const context = {
+            matrix: ${{ toJson(matrix) }},
+            github: ${{ toJson(github) }},
+            inputs: ${{ toJson(inputs) }},
+          }
           const core = require('@actions/core');
-          // const github = require('@actions/github');
-          const artifact = require('@actions/artifact');
 
-          const matrix = JSON.parse(`
-          ${{ toJson(matrix) }}
-          `)
-
-          const sapis = matrix.sapis
-          const flavors = matrix.flavors
-          const binFile = {
-            'micro': 'micro.sfx',
-            'micro-cli': 'micro_cli.sfx',
-            'cli': 'php',
-          }
-
-          async function main() {
-            let client = artifact.create()
-
-            let artifacts = {};
-            let results = {};
-
-            let versionFile = await fs.readFile('build/versionFile');
-            let srcHash = crypto.createHash('sha256').update(versionFile).digest('hex');
-
-            for (const flavor of flavors) {
-              let dir = `build/out/${flavor}`;
-              for (const sapi of sapis) {
-                let binPath = `${dir}/${binFile[sapi]}`;
-                try {
-                  await fs.access(binPath)
-                  console.log(`\x1b[37m;File ${binPath} found\x1b[0m;`)
-                  let artifactName = `${sapi}_${flavor}_${matrix.phpVer}_${matrix.arch}_${srcHash}`;
-                  artifacts[artifactName] = {
-                    'file': binPath,
-                    'dir': dir,
-                  };
-                  let shaSum = crypto.createHash('sha256').update(await fs.readFile(binPath)).digest('hex')
-                  console.log(`\x1b[37m;File ${binPath} sha256: ${shaSum}\x1b[0m;`)
-                  await fs.writeFile(`${dir}/sha256sums.txt`, `${shaSum}  ${binFile[sapi]}\n`, { flag: 'a' })
-                  try {
-                    shaSum = crypto.createHash('sha256').update(await fs.readFile(`${binPath}.dwarf`)).digest('hex')
-                    console.log(`\x1b[37m;File ${binPath}.dwarf sha256: ${shaSum}\x1b[0m;`)
-                    await fs.writeFile(`${dir}/sha256sums.txt`, `${shaSum}  ${binFile[sapi]}.dwarf\n`, { flag: 'a' })
-                  } catch (error) {
-                    // pass
-                  }
-                } catch (error) {
-                  console.log(`\x1b[30m;File ${binPath} not found\x1b[0m;`)
-                }
-              }
-            }
-
-            for (const [name, info] of Object.entries(artifacts)) {
-              let fileList = [
-                `${info.dir}/sha256sums.txt`,
-                info.file,
-              ];
-              try {
-                await fs.access(`${info.file}.dwarf`);
-                fileList.push(`${info.file}.dwarf`);
-              } catch (error) {
-                // pass
-              }
-              try {
-                for (const file of await fs.readdir(`${info.dir}/licenses`)) {
-                  fileList.push(`${info.dir}/licenses/${file}`);
-                }
-              } catch (error) {
-                console.log(`Directory ${info.dir}/licenses not found`);
-              }
-              fileList.push(`${info.dir}/versionFile`);
-
-              try {
-                console.log(`Uploading artifact ${name}`);
-                let uploadResponse = client.uploadArtifact(name, fileList, info.dir);
-                results[name] = uploadResponse;
-              } catch (error) {
-                core.setFailed(error.message);
-              }
-            }
-
-            for (const [name, result] of Object.entries(results)) {
-              let res = await result;
-              console.log(`Artifact ${name} uploaded: ${res.artifactName}`);
-            }
-          }
-
-          main().catch(err => core.setFailed(err.message));
+          const { main } = require('/lwmbs/.github/workflows/upload.js')
+          main('${{ secrets.GITHUB_TOKEN }}', 'macos', context).catch(err => core.setFailed(err.message))
 
 
 
