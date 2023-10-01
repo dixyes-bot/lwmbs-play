@@ -204,14 +204,19 @@ jobs:
 
           # download source
           Set-Location C:\build
-          php C:\lwmbs\fetch_source.php `
-            "" `
-            "" `
-            "--phpVer=${{ matrix.phpVer }}" `
-            "--versionFile=C:\build\versionFile"
-          if (0 -Ne $lastexitcode) {
-            exit 1
-          }
+          # php C:\lwmbs\fetch_source.php `
+          #   "" `
+          #   "" `
+          #   "--phpVer=${{ matrix.phpVer }}" `
+          #   "--versionFile=C:\build\versionFile"
+          # if (0 -Ne $lastexitcode) {
+          #   exit 1
+          # }
+          New-Item -Type Container -Force C:\build\src\php-src\sapi\micro
+          New-Item -Type Container -Force C:\build\src\php-src\sapi\cli
+          New-Item -Type Container -Force C:\build\src\php-src\ext\swow-src\ext
+          New-Item -Type Container -Force C:\build\src\php-src\ext\swow
+          Write-Output "ceshi" | Out-File -FilePath "C:\build\versionFile"
 
           $srcHash = (Get-FileHash -Path C:\build\versionFile -Algorithm SHA256).Hash.ToLower()
 
@@ -358,13 +363,13 @@ jobs:
 
               Write-Host "::group::Build $flavor libs"
               # rebuild libs for this flavor to avoid cache
-              & php \${lwmbsDir}\build_libs.php `
-                  "$libraries" `
-                  "--phpBinarySDKDir=\$phpSdkDir" `
-                  "--vsVer=\$vsVer" `
-                  "--arch={$matrix['arch']}" `
-                  "--fresh"
-              \$ret=\$LASTEXITCODE
+              # & php \${lwmbsDir}\build_libs.php `
+              #     "$libraries" `
+              #     "--phpBinarySDKDir=\$phpSdkDir" `
+              #     "--vsVer=\$vsVer" `
+              #     "--arch={$matrix['arch']}" `
+              #     "--fresh"
+              # \$ret=\$LASTEXITCODE
               Write-Host "::endgroup::"
 
               if (\$ret -ne 0) {
@@ -408,13 +413,15 @@ jobs:
                       # delete the built bin to avoid cache
                       Remove-Item -ErrorAction SilentlyContinue -Force `
                           src/php-src/{$matrix['arch']}/Release_TS/sapi/micro/php_micro.obj
-                      & php \${lwmbsDir}\\$command `
-                          "$libraries" `
-                          "$extensions" `
-                          "--phpBinarySDKDir=\$phpSdkDir" `
-                          "--vsVer=\$vsVer" `
-                          "--arch={$matrix['arch']}"
-                      \$ret=\$LASTEXITCODE
+                      # & php \${lwmbsDir}\\$command `
+                      #     "$libraries" `
+                      #     "$extensions" `
+                      #     "--phpBinarySDKDir=\$phpSdkDir" `
+                      #     "--vsVer=\$vsVer" `
+                      #     "--arch={$matrix['arch']}"
+                      # \$ret=\$LASTEXITCODE
+                      Out-File -FilePath \${buildDir}$targetBin -Encoding Ascii -Force
+                      Out-File -FilePath \${buildDir}$targetBinPDB -Encoding Ascii -Force
                       if (\$ret -eq 0) {
                           # copy the built bin out
                           New-Item -Path "\$outDir\\{$flavor}" -ItemType Directory -Force
