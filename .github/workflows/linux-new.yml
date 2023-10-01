@@ -82,7 +82,6 @@ jobs:
               file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
           }
 
-
           function arg2arr(string $arg): array
           {
               return array_filter(array_map("trim", explode(',', $arg)));

@@ -45,6 +45,36 @@ jobs:
         run: |
           <?php
 
+          set_error_handler(function ($severity, $message, $file, $line) {
+              throw new ErrorException($message, 0, $severity, $file, $line);
+          });
+
+          if (!!'${{ github.event.inputs.uploadRelease }}') {
+              # create github release
+              echo "create release\n";
+
+              $tagName = date('Ymd') . '-linux-${{ github.run_id }}';
+
+              $context = stream_context_create([
+                  'http' => [
+                      'method' => 'POST',
+                      'header' => implode("\r\n", [
+                          'Content-Type: application/json',
+                          'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}',
+                          'User-Agent: file_get_contents/0',
+                      ]),
+                      'content' => json_encode([
+                          'tag_name' => $tagName,
+                          'name' => $tagName,
+                          'body' => "automatic release\n\nworkflow run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                          #'draft' => true,
+                          #'prerelease' => true,
+                      ]),
+                  ],
+              ]);
+              file_get_contents('https://api.github.com/repos/${{ github.repository }}/releases', context: $context);
+          }
+
           function arg2arr(string $arg): array
           {
               return array_filter(array_map("trim", explode(',', $arg)));
@@ -428,7 +458,7 @@ jobs:
           }
           const core = require('@actions/core');
 
-          const { main } = require('.github/workflows/upload.js')
+          const { main } = require('${{ github.workspace }}/.github/workflows/upload.js')
           main('${{ secrets.GITHUB_TOKEN }}', 'macos', context).catch(err => core.setFailed(err.message))
 
 
