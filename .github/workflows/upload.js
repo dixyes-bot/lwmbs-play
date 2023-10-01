@@ -140,7 +140,7 @@ async function main(token, osName, context) {
           // pass
         }
       } catch (error) {
-        console.log(`\x1b[30mFile ${filePath} not found\x1b[0m`)
+        console.log(`\x1b[33mFile ${filePath} not found\x1b[0m`)
       }
     }
   }
