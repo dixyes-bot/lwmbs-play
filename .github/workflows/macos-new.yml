@@ -27,6 +27,10 @@ on:
         description: "custom libraries, used for custom flavor build"
         required: false
         default: ""
+      uploadRelease:
+        description: "upload binaries to releases, otherwise only upload via artifact"
+        required: false
+        default: ""
 
 jobs:
   gen-jobs:
