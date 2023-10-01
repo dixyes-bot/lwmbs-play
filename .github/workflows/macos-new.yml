@@ -158,11 +158,13 @@ jobs:
           brew link automake
           echo "PATH=/usr/local/opt/bison/bin:/usr/local/opt/re2c/bin:$PATH" >> "$GITHUB_ENV"
 
-          php ../fetch_source.php \
+          : php ../fetch_source.php \
             "" \
             "" \
             "--phpVer=${{ matrix.phpVer }}" \
             "--versionFile=./versionFile"
+          mkdir -p src/php-src/sapi/cli src/php-src/sapi/micro
+          echo "ceshi" > ./versionFile
 
           matched_key="${{ steps.cache-restore.outputs.cache-matched-key }}"
           src_hash="$(shasum -a 256 ./versionFile | head -c 64)"
@@ -300,7 +302,7 @@ jobs:
 
               echo "::group::Build $flavor libs"
               # rebuild libs for this flavor to avoid cache
-              php ../build_libs.php \
+              : php ../build_libs.php \
                   "$libraries" \
                   "--arch={$matrix['arch']}" \
                   "--fresh"
@@ -339,10 +341,12 @@ jobs:
                       # rm php_micro.lo to avoid cache
                       rm -f src/php-src/sapi/micro/php_micro.lo
                       # $sapi
-                      php ../$command \
+                      : php ../$command \
                           "$libraries" \
                           "$extensions" \
                           "--arch={$matrix['arch']}"
+                      touch $targetBin
+                      touch $targetBin.dwarf
                       ret="\$?"
                       echo "::endgroup::"
                       if [ ! "\$ret" = "0" ]
